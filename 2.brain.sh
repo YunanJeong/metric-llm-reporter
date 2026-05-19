@@ -105,6 +105,8 @@ if [ "$AI_TYPE" == "local" ]; then
     fi
 
     RESULT=$(echo "$RESPONSE" | jq -r '.response // .error')
+    IN_TOKENS=$(echo "$RESPONSE" | jq -r '.prompt_eval_count // 0')
+    OUT_TOKENS=$(echo "$RESPONSE" | jq -r '.eval_count // 0')
 
 elif [ "$AI_TYPE" == "api" ]; then
     ENDPOINT="${AI_API_URL}/chat/completions"
@@ -123,6 +125,8 @@ elif [ "$AI_TYPE" == "api" ]; then
     fi
 
     RESULT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // .error.message')
+    IN_TOKENS=$(echo "$RESPONSE" | jq -r '.usage.prompt_tokens // 0')
+    OUT_TOKENS=$(echo "$RESPONSE" | jq -r '.usage.completion_tokens // 0')
 
 elif [ "$AI_TYPE" == "bedrock" ]; then
     # AWS Bedrock 호출 (AWS CLI 필요)
@@ -192,6 +196,8 @@ EOF
     # 응답 파싱 (Claude 모델의 응답 형식)
     # type이 "text"인 content만 추출하여 메타데이터 제외
     RESULT=$(jq -r '[.content[] | select(.type == "text") | .text] | join("\n")' "$TEMP_OUTPUT")
+    IN_TOKENS=$(jq -r '.usage.input_tokens // 0' "$TEMP_OUTPUT")
+    OUT_TOKENS=$(jq -r '.usage.output_tokens // 0' "$TEMP_OUTPUT")
 
     # 디버깅: 응답이 비어있으면 전체 응답 출력
     if [ -z "$RESULT" ] || [ "$RESULT" == "null" ]; then
@@ -217,4 +223,4 @@ fi
 DURATION=$((SECONDS - START_TIME))
 
 echo "$RESULT"
-echo "[AI] 분석이 완료되었습니다. (소요 시간: ${DURATION}초)" >&2
+echo "[AI] 분석이 완료되었습니다. (소요 시간: ${DURATION}초, 토큰: in=${IN_TOKENS:-0} out=${OUT_TOKENS:-0} total=$((${IN_TOKENS:-0}+${OUT_TOKENS:-0})))" >&2
