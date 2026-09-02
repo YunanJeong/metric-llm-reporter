@@ -30,7 +30,7 @@ ANALYSIS_RESULT=$(echo "$REPORT_TEXT" | \
 
 # 4. 헤더/푸터 설정 (여기서 직접 수정)
 REPORT_HEADER=""
-REPORT_FOOTER="Powered by Metric-LLM-Reporter / $AI_MODEL"
+REPORT_FOOTER="Powered by Metric-LLM-Reporter / $(sed -E '/application-inference-profile/ s/bedrock:[^:]+:[0-9]{12}:/***:/' <<< "$AI_MODEL")"
 
 # 5. 최종 리포트 생성
 if [ -n "$ANALYSIS_RESULT" ]; then
