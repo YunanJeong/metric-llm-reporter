@@ -235,6 +235,22 @@ PROM_TARGETS="TEST|http://test:9090" ./1.fetch.sh prod.env
 
 ---
 
+## 🌐 HTTP API (선택)
+
+셸 파이프라인을 그대로 두고 HTTP로도 호출할 수 있는 얇은 API 계층이 `api/`에 있습니다.
+기존 `run.sh`·cron 실행 방식에는 영향이 없으며, `api/` 디렉터리가 없어도 도구는 그대로 동작합니다.
+
+```bash
+uv run api/main.py   # 문서: http://127.0.0.1:8000/docs
+```
+
+- `GET /v1/metrics` — 압축 메트릭 리포트 조회 (`1.fetch.sh` 호출, 60초 TTL 캐시)
+- `POST /v1/analyses` → `202` + job id / `GET /v1/analyses/{id}` — LLM 분석 비동기 실행 (`2.brain.sh` 호출)
+
+설계 근거와 한계(메모리 기반 job 저장소, 인증 없음, 메일 발송 미포함)는 [`api/README.md`](api/README.md)에 있습니다.
+
+---
+
 ## 📝 리포트 명세 (Data Specification)
 
 AI 분석에 전달되는 데이터는 다음과 같은 포맷을 가집니다. (모든 수치는 24시간 전 대비 **증감폭**을 포함합니다.)
